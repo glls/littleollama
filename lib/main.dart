@@ -197,33 +197,29 @@ class _ModelsPageState extends State<ModelsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('littleOllama'),
-            Row(
-              children: [
-                // show only base URL (no path)
-                Expanded(
-                  child: Text(
-                    AppUtils.baseUrlFromEndpoint(_endpoint),
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (_version != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      'v: $_version',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-              ],
-            ),
-          ],
+        title: Row(
+      children: [
+      const Text('LittleOllama'),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            AppUtils.baseUrlFromEndpoint(_endpoint),
+            style: const TextStyle(fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        actions: [
+        if (_version != null)
+    Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: Text(
+        'v: $_version',
+        style: const TextStyle(fontSize: 12),
+      ),
+    ),
+    ],
+    ),
+
+    actions: [
           // Theme chooser
           PopupMenuButton<ThemeMode>(
             icon: const Icon(Icons.brightness_6),
