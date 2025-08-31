@@ -35,10 +35,11 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       if (v == 'light') {
         _themeMode = ThemeMode.light;
-      } else if (v == 'dark')
+      } else if (v == 'dark') {
         _themeMode = ThemeMode.dark;
-      else
+      } else {
         _themeMode = ThemeMode.system;
+      }
     });
   }
 
@@ -144,7 +145,9 @@ class _ModelsPageState extends State<ModelsPage> {
   void _startPolling() {
     _pollingTimer?.cancel();
     if (_pollingInterval > 0) {
-      _pollingTimer = Timer.periodic(Duration(seconds: _pollingInterval), (timer) {
+      _pollingTimer = Timer.periodic(Duration(seconds: _pollingInterval), (
+        timer,
+      ) {
         _fetchVersion();
         _fetchRunning();
       });
@@ -196,7 +199,9 @@ class _ModelsPageState extends State<ModelsPage> {
     if (_ollamaService != null) {
       final runningModels = await _ollamaService!.fetchRunningModels();
       if (runningModels.isNotEmpty) {
-        final modelInfos = runningModels.map((model) => model.formatDetails(AppUtils.humanSize)).toList();
+        final modelInfos = runningModels
+            .map((model) => model.formatDetails(AppUtils.humanSize))
+            .toList();
         setState(() => _running = modelInfos.join('\n'));
       } else {
         setState(() => _running = null);
@@ -219,7 +224,7 @@ class _ModelsPageState extends State<ModelsPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Text(
-                  'Ollama v: $_version ${AppUtils.baseUrlFromEndpoint(_endpoint)}',
+                  'Ollama v$_version ${AppUtils.baseUrlFromEndpoint(_endpoint)}',
                   style: const TextStyle(fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -253,7 +258,10 @@ class _ModelsPageState extends State<ModelsPage> {
                     currentPollingInterval: _pollingInterval,
                     currentSortBy: _sortBy,
                     onEndpointChanged: (newEndpoint) async {
-                      await storage.saveEndpoint(_prefsKeyEndpoint, newEndpoint);
+                      await storage.saveEndpoint(
+                        _prefsKeyEndpoint,
+                        newEndpoint,
+                      );
                       _onEndpointChanged(newEndpoint);
                     },
                     onPollingIntervalChanged: _onPollingIntervalChanged,
@@ -345,188 +353,257 @@ class _ModelsPageState extends State<ModelsPage> {
               child: _futureModels == null
                   ? const Center(child: CircularProgressIndicator())
                   : FutureBuilder<List<OllamaModel>>(
-                future: _futureModels,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      future: _futureModels,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.red,
-                              ),
-                              const SizedBox(height: 16),
-                              Text('Error: ${''}'),
-                              const SizedBox(height: 8),
-                              Text(snapshot.error.toString()),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _refresh,
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  final models = snapshot.data ?? [];
-                  final filter = _filter.trim().toLowerCase();
-                  List<OllamaModel> filteredModels = models;
-                  if (filter.isNotEmpty) {
-                    filteredModels = models.where((m) {
-                      // match against name first
-                      final name = m.displayName.toLowerCase();
-                      if (name.contains(filter)) return true;
-                      // match model field or other details
-                      if (m.model?.toLowerCase().contains(filter) ?? false) return true;
-                      if (m.parameterSize?.toLowerCase().contains(filter) ?? false) return true;
-                      if (m.quantizationLevel?.toLowerCase().contains(filter) ?? false) return true;
-                      return false;
-                    }).toList();
-                  }
-                  // Sort models by selected option
-                  filteredModels.sort((a, b) {
-                    switch (_sortBy) {
-                      case 'name':
-                        return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-                      case 'modified_at':
-                        return (a.modifiedAt ?? '').compareTo(b.modifiedAt ?? '');
-                      case 'size':
-                        return (b.size ?? 0).compareTo(a.size ?? 0);
-                      case 'family':
-                        return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
-                      default:
-                        return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
-                    }
-                  });
-
-                  if (filteredModels.isEmpty) {
-                    return ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        const SizedBox(height: 40),
-                        Center(
-                          child: Text(
-                            filter.isEmpty
-                                ? 'No models found'
-                                : 'No models match "$filter"',
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: filteredModels.length,
-                    itemBuilder: (context, index) {
-                      final model = filteredModels[index];
-                      final name = model.displayName;
-                      final sizeText = model.size != null ? AppUtils.humanSize(model.size) : null;
-                      final chipBg = Theme.of(context).colorScheme.surfaceContainerHighest;
-                      final chipFg = Theme.of(context).colorScheme.onSurfaceVariant;
-
-                      return Card(
-                        elevation: 3,
-                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: ExpansionTile(
-                          key: ValueKey('expansion-$name-$index'),
-                          title: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    name,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (sizeText != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 4.0),
-                                    child: Chip(
-                                      backgroundColor: chipBg,
-                                      label: Text(
-                                        sizeText,
-                                        style: TextStyle(color: chipFg, fontSize: 10), // smaller text
-                                      ),
-                                      visualDensity: VisualDensity(horizontal: -4, vertical: -4), // smaller chip
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                                    ),
-                                  ),
-                                // Removed parameterSize chip
-                              ],
-                            ),
-                          ),
-                          subtitle: null,
-                          children: [
-                            if (model.digest != null)
-                              ListTile(
-                                title: const Text('Digest'),
-                                subtitle: Text(model.digest!),
-                              ),
-                            if (model.size != null)
-                              ListTile(
-                                title: const Text('Size'),
-                                subtitle: Text('${model.size} (${AppUtils.humanSize(model.size)})'),
-                              ),
-                            if (model.sizeVram != null)
-                              ListTile(
-                                title: const Text('VRAM Size'),
-                                subtitle: Text('${model.sizeVram} (${AppUtils.humanSize(model.sizeVram)})'),
-                              ),
-                            if (model.contextLength != null)
-                              ListTile(
-                                title: const Text('Context Length'),
-                                subtitle: Text(model.contextLength.toString()),
-                              ),
-                            if (model.expiresAt != null)
-                              ListTile(
-                                title: const Text('Expires At'),
-                                subtitle: Text(model.expiresAt.toString()),
-                              ),
-
-                            // Render details map as individual properties (not raw JSON)
-                            if (model.details != null) ...[
-                              const Divider(),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                child: Text('Details', style: Theme.of(context).textTheme.titleSmall),
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline,
+                                      size: 64,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text('Error: ${''}'),
+                                    const SizedBox(height: 8),
+                                    Text(snapshot.error.toString()),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refresh,
+                                      child: const Text('Retry'),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              for (final entry in model.details!.entries)
-                                ListTile(
-                                  dense: true,
-                                  title: Text(entry.key),
-                                  subtitle: Text(
-                                    entry.value == null
-                                        ? 'null'
-                                        : (entry.value is Map || entry.value is List)
-                                            ? (model.detailsPretty ?? entry.value.toString())
-                                            : entry.value.toString(),
+                            ],
+                          );
+                        }
+
+                        final models = snapshot.data ?? [];
+                        final filter = _filter.trim().toLowerCase();
+                        List<OllamaModel> filteredModels = models;
+                        if (filter.isNotEmpty) {
+                          filteredModels = models.where((m) {
+                            // match against name first
+                            final name = m.displayName.toLowerCase();
+                            if (name.contains(filter)) return true;
+                            // match model field or other details
+                            if (m.model?.toLowerCase().contains(filter) ??
+                                false)
+                              return true;
+                            if (m.parameterSize?.toLowerCase().contains(
+                                  filter,
+                                ) ??
+                                false)
+                              return true;
+                            if (m.quantizationLevel?.toLowerCase().contains(
+                                  filter,
+                                ) ??
+                                false)
+                              return true;
+                            return false;
+                          }).toList();
+                        }
+                        // Sort models by selected option
+                        filteredModels.sort((a, b) {
+                          switch (_sortBy) {
+                            case 'name':
+                              return a.displayName.toLowerCase().compareTo(
+                                b.displayName.toLowerCase(),
+                              );
+                            case 'modified_at':
+                              return (a.modifiedAt ?? '').compareTo(
+                                b.modifiedAt ?? '',
+                              );
+                            case 'size':
+                              return (b.size ?? 0).compareTo(a.size ?? 0);
+                            case 'family':
+                              return (a.details?['family'] ?? '').compareTo(
+                                b.details?['family'] ?? '',
+                              );
+                            default:
+                              return a.displayName.toLowerCase().compareTo(
+                                b.displayName.toLowerCase(),
+                              );
+                          }
+                        });
+
+                        if (filteredModels.isEmpty) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              const SizedBox(height: 40),
+                              Center(
+                                child: Text(
+                                  filter.isEmpty
+                                      ? 'No models found'
+                                      : 'No models match "$filter"',
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: filteredModels.length,
+                          itemBuilder: (context, index) {
+                            final model = filteredModels[index];
+                            final name = model.displayName;
+                            final sizeText = model.size != null
+                                ? AppUtils.humanSize(model.size)
+                                : null;
+                            final chipBg = Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest;
+                            final chipFg = Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant;
+
+                            return Card(
+                              elevation: 3,
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 4,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ExpansionTile(
+                                key: ValueKey('expansion-$name-$index'),
+                                title: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4.0,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (sizeText != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 4.0,
+                                          ),
+                                          child: Chip(
+                                            backgroundColor: chipBg,
+                                            label: Text(
+                                              sizeText,
+                                              style: TextStyle(
+                                                color: chipFg,
+                                                fontSize: 10,
+                                              ), // smaller text
+                                            ),
+                                            visualDensity: VisualDensity(
+                                              horizontal: -4,
+                                              vertical: -4,
+                                            ),
+                                            // smaller chip
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 0,
+                                            ),
+                                          ),
+                                        ),
+                                      // Removed parameterSize chip
+                                    ],
                                   ),
                                 ),
-                            ],
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                                subtitle: null,
+                                children: [
+                                  if (model.digest != null)
+                                    ListTile(
+                                      title: const Text('Digest'),
+                                      subtitle: Text(model.digest!),
+                                    ),
+                                  if (model.size != null)
+                                    ListTile(
+                                      title: const Text('Size'),
+                                      subtitle: Text(
+                                        '${model.size} (${AppUtils.humanSize(model.size)})',
+                                      ),
+                                    ),
+                                  if (model.sizeVram != null)
+                                    ListTile(
+                                      title: const Text('VRAM Size'),
+                                      subtitle: Text(
+                                        '${model.sizeVram} (${AppUtils.humanSize(model.sizeVram)})',
+                                      ),
+                                    ),
+                                  if (model.contextLength != null)
+                                    ListTile(
+                                      title: const Text('Context Length'),
+                                      subtitle: Text(
+                                        model.contextLength.toString(),
+                                      ),
+                                    ),
+                                  if (model.expiresAt != null)
+                                    ListTile(
+                                      title: const Text('Expires At'),
+                                      subtitle: Text(
+                                        model.expiresAt.toString(),
+                                      ),
+                                    ),
+
+                                  // Render details map as individual properties (not raw JSON)
+                                  if (model.details != null) ...[
+                                    const Divider(),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 8.0,
+                                      ),
+                                      child: Text(
+                                        'Details',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall,
+                                      ),
+                                    ),
+                                    for (final entry in model.details!.entries)
+                                      ListTile(
+                                        dense: true,
+                                        title: Text(entry.key),
+                                        subtitle: Text(
+                                          entry.value == null
+                                              ? 'null'
+                                              : (entry.value is Map ||
+                                                    entry.value is List)
+                                              ? (model.detailsPretty ??
+                                                    entry.value.toString())
+                                              : entry.value.toString(),
+                                        ),
+                                      ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ),
         ],
