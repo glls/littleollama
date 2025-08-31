@@ -3,9 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import '../src/storage_io.dart'
-    if (dart.library.html) '../src/storage_web.dart'
-    as storage;
+import '../src/storage_io.dart' if (dart.library.html) '../src/storage_web.dart' as storage;
 
 class OptionsScreen extends StatefulWidget {
   final String currentEndpoint;
@@ -68,16 +66,12 @@ class _OptionsScreenState extends State<OptionsScreen> {
     if (normalizedEndpoint.contains('/api/')) {
       normalizedEndpoint = normalizedEndpoint.split('/api/')[0];
     }
-    if (!normalizedEndpoint.startsWith('http://') &&
-        !normalizedEndpoint.startsWith('https://')) {
+    if (!normalizedEndpoint.startsWith('http://') && !normalizedEndpoint.startsWith('https://')) {
       normalizedEndpoint = 'http://$normalizedEndpoint';
     }
 
     // Save polling interval and sorting preference
-    await storage.saveSetting(
-      _prefsKeyPollingInterval,
-      _pollingInterval.toString(),
-    );
+    await storage.saveSetting(_prefsKeyPollingInterval, _pollingInterval.toString());
     await storage.saveSetting(_prefsKeySortBy, _sortBy);
 
     // Call callbacks
@@ -86,9 +80,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
     widget.onSortByChanged(_sortBy);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Settings saved successfully')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings saved successfully')));
       Navigator.of(context).pop();
     }
   }
@@ -133,26 +125,13 @@ class _OptionsScreenState extends State<OptionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'App Information',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('App Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Text(
-                        'LittleOllama v${_packageInfo?.version ?? 'Unknown'}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
+                      Text('LittleOllama v${_packageInfo?.version ?? 'Unknown'}', style: const TextStyle(fontSize: 16)),
                       const SizedBox(width: 8),
-                      if (_packageInfo?.version != null)
-                        Text(
-                          "(${getPlatformName()})",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                      if (_packageInfo?.version != null) Text("(${getPlatformName()})", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -160,11 +139,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     onTap: _launchGeorgeLitos,
                     child: Text(
                       'Developed by George Litos',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primary, decoration: TextDecoration.underline),
                     ),
                   ),
                 ],
@@ -181,10 +156,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Server Configuration',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Server Configuration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _endpointController,
@@ -211,23 +183,14 @@ class _OptionsScreenState extends State<OptionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Model Sorting',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Model Sorting', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _sortBy,
-                    decoration: const InputDecoration(
-                      labelText: 'Sort models by',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Sort models by', border: OutlineInputBorder()),
                     items: const [
                       DropdownMenuItem(value: 'name', child: Text('Name')),
-                      DropdownMenuItem(
-                        value: 'modified_at',
-                        child: Text('Modified At'),
-                      ),
+                      DropdownMenuItem(value: 'modified_at', child: Text('Modified At')),
                       DropdownMenuItem(value: 'size', child: Text('Size')),
                       DropdownMenuItem(value: 'family', child: Text('Family')),
                     ],
@@ -251,26 +214,15 @@ class _OptionsScreenState extends State<OptionsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Polling Configuration',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Polling Configuration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.schedule, size: 20),
-                      const SizedBox(width: 8),
-                      const Text('Refresh interval for running models:'),
-                    ],
-                  ),
+                  Row(children: [const Icon(Icons.schedule, size: 20), const SizedBox(width: 8), const Text('Refresh interval for running models:')]),
                   const SizedBox(height: 12),
                   Column(
                     children: [
                       RadioListTile<int>(
                         title: const Text('Manual only'),
-                        subtitle: const Text(
-                          'Only refresh when manually triggered',
-                        ),
+                        subtitle: const Text('Only refresh when manually triggered'),
                         value: 0,
                         groupValue: _pollingInterval,
                         onChanged: (value) {

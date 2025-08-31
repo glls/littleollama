@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'src/storage_io.dart'
-    if (dart.library.html) 'src/storage_web.dart'
-    as storage;
+import 'src/storage_io.dart' if (dart.library.html) 'src/storage_web.dart' as storage;
 import 'screens/options_screen.dart';
 import 'models/ollama_models.dart';
 import 'services/ollama_service.dart';
@@ -44,9 +42,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _setThemeMode(ThemeMode m) async {
-    final s = m == ThemeMode.light
-        ? 'light'
-        : (m == ThemeMode.dark ? 'dark' : 'system');
+    final s = m == ThemeMode.light ? 'light' : (m == ThemeMode.dark ? 'dark' : 'system');
     await storage.saveSetting(_prefsThemeKey, s);
     setState(() => _themeMode = m);
   }
@@ -61,10 +57,7 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
         useMaterial3: true,
         brightness: Brightness.dark,
       ),
@@ -78,11 +71,7 @@ class ModelsPage extends StatefulWidget {
   final ThemeMode themeMode;
   final Future<void> Function(ThemeMode) onThemeChanged;
 
-  const ModelsPage({
-    super.key,
-    required this.themeMode,
-    required this.onThemeChanged,
-  });
+  const ModelsPage({super.key, required this.themeMode, required this.onThemeChanged});
 
   @override
   State<ModelsPage> createState() => _ModelsPageState();
@@ -145,9 +134,7 @@ class _ModelsPageState extends State<ModelsPage> {
   void _startPolling() {
     _pollingTimer?.cancel();
     if (_pollingInterval > 0) {
-      _pollingTimer = Timer.periodic(Duration(seconds: _pollingInterval), (
-        timer,
-      ) {
+      _pollingTimer = Timer.periodic(Duration(seconds: _pollingInterval), (timer) {
         _fetchVersion();
         _fetchRunning();
       });
@@ -199,9 +186,7 @@ class _ModelsPageState extends State<ModelsPage> {
     if (_ollamaService != null) {
       final runningModels = await _ollamaService!.fetchRunningModels();
       if (runningModels.isNotEmpty) {
-        final modelInfos = runningModels
-            .map((model) => model.formatDetails(AppUtils.humanSize))
-            .toList();
+        final modelInfos = runningModels.map((model) => model.formatDetails(AppUtils.humanSize)).toList();
         setState(() => _running = modelInfos.join('\n'));
       } else {
         setState(() => _running = null);
@@ -216,10 +201,7 @@ class _ModelsPageState extends State<ModelsPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'LittleOllama',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+            const Text('LittleOllama', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             if (_version != null)
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
@@ -239,10 +221,7 @@ class _ModelsPageState extends State<ModelsPage> {
               await widget.onThemeChanged(m);
             },
             itemBuilder: (ctx) => [
-              PopupMenuItem(
-                value: ThemeMode.system,
-                child: const Text('System'),
-              ),
+              PopupMenuItem(value: ThemeMode.system, child: const Text('System')),
               PopupMenuItem(value: ThemeMode.light, child: const Text('Light')),
               PopupMenuItem(value: ThemeMode.dark, child: const Text('Dark')),
             ],
@@ -258,10 +237,7 @@ class _ModelsPageState extends State<ModelsPage> {
                     currentPollingInterval: _pollingInterval,
                     currentSortBy: _sortBy,
                     onEndpointChanged: (newEndpoint) async {
-                      await storage.saveSetting(
-                        _prefsKeyEndpoint,
-                        newEndpoint,
-                      );
+                      await storage.saveSetting(_prefsKeyEndpoint, newEndpoint);
                       _onEndpointChanged(newEndpoint);
                     },
                     onPollingIntervalChanged: _onPollingIntervalChanged,
@@ -278,10 +254,7 @@ class _ModelsPageState extends State<ModelsPage> {
         children: [
           // running model info shown between appbar and filter
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 6.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -289,13 +262,7 @@ class _ModelsPageState extends State<ModelsPage> {
                   children: [
                     const Icon(Icons.play_arrow, size: 18),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Running Models:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('Running Models:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     const Spacer(),
                     IconButton(
                       tooltip: 'Refresh status',
@@ -308,17 +275,11 @@ class _ModelsPageState extends State<ModelsPage> {
                   ],
                 ),
                 if (_running == null)
-                  const Text(
-                    'No running models detected',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  )
+                  const Text('No running models detected', style: TextStyle(fontSize: 13, color: Colors.grey))
                 else
                   Padding(
                     padding: const EdgeInsets.only(left: 26.0),
-                    child: Text(
-                      _running!,
-                      style: const TextStyle(fontSize: 13),
-                    ),
+                    child: Text(_running!, style: const TextStyle(fontSize: 13)),
                   ),
               ],
             ),
@@ -355,11 +316,8 @@ class _ModelsPageState extends State<ModelsPage> {
                   : FutureBuilder<List<OllamaModel>>(
                       future: _futureModels,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
                         }
                         if (snapshot.hasError) {
                           return ListView(
@@ -370,18 +328,11 @@ class _ModelsPageState extends State<ModelsPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      size: 64,
-                                      color: Colors.red,
-                                    ),
+                                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
                                     const SizedBox(height: 8),
                                     Text(snapshot.error.toString()),
                                     const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refresh,
-                                      child: const Text('Retry'),
-                                    ),
+                                    ElevatedButton(onPressed: _refresh, child: const Text('Retry')),
                                   ],
                                 ),
                               ),
@@ -398,19 +349,9 @@ class _ModelsPageState extends State<ModelsPage> {
                             final name = m.displayName.toLowerCase();
                             if (name.contains(filter)) return true;
                             // match model field or other details
-                            if (m.model?.toLowerCase().contains(filter) ??
-                                false)
-                              return true;
-                            if (m.parameterSize?.toLowerCase().contains(
-                                  filter,
-                                ) ??
-                                false)
-                              return true;
-                            if (m.quantizationLevel?.toLowerCase().contains(
-                                  filter,
-                                ) ??
-                                false)
-                              return true;
+                            if (m.model?.toLowerCase().contains(filter) == true) return true;
+                            if (m.parameterSize?.toLowerCase().contains(filter) == true) return true;
+                            if (m.quantizationLevel?.toLowerCase().contains(filter) == true) return true;
                             return false;
                           }).toList();
                         }
@@ -418,23 +359,15 @@ class _ModelsPageState extends State<ModelsPage> {
                         filteredModels.sort((a, b) {
                           switch (_sortBy) {
                             case 'name':
-                              return a.displayName.toLowerCase().compareTo(
-                                b.displayName.toLowerCase(),
-                              );
+                              return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
                             case 'modified_at':
-                              return (a.modifiedAt ?? '').compareTo(
-                                b.modifiedAt ?? '',
-                              );
+                              return (a.modifiedAt ?? '').compareTo(b.modifiedAt ?? '');
                             case 'size':
                               return (b.size ?? 0).compareTo(a.size ?? 0);
                             case 'family':
-                              return (a.details?['family'] ?? '').compareTo(
-                                b.details?['family'] ?? '',
-                              );
+                              return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
                             default:
-                              return a.displayName.toLowerCase().compareTo(
-                                b.displayName.toLowerCase(),
-                              );
+                              return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
                           }
                         });
 
@@ -443,13 +376,7 @@ class _ModelsPageState extends State<ModelsPage> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
                               const SizedBox(height: 40),
-                              Center(
-                                child: Text(
-                                  filter.isEmpty
-                                      ? 'No models found'
-                                      : 'No models match "$filter"',
-                                ),
-                              ),
+                              Center(child: Text(filter.isEmpty ? 'No models found' : 'No models match "$filter"')),
                             ],
                           );
                         }
@@ -460,69 +387,40 @@ class _ModelsPageState extends State<ModelsPage> {
                           itemBuilder: (context, index) {
                             final model = filteredModels[index];
                             final name = model.displayName;
-                            final sizeText = model.size != null
-                                ? AppUtils.humanSize(model.size)
-                                : null;
-                            final chipBg = Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest;
-                            final chipFg = Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant;
+                            final sizeText = model.size != null ? AppUtils.humanSize(model.size) : null;
+                            final chipBg = Theme.of(context).colorScheme.surfaceContainerHighest;
+                            final chipFg = Theme.of(context).colorScheme.onSurfaceVariant;
 
                             return Card(
                               elevation: 3,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 4,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               child: ExpansionTile(
                                 key: ValueKey('expansion-$name-$index'),
                                 title: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4.0,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
                                     children: [
                                       Expanded(
                                         child: Text(
                                           name,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       if (sizeText != null)
                                         Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 4.0,
-                                          ),
+                                          padding: const EdgeInsets.only(left: 4.0),
                                           child: Chip(
                                             backgroundColor: chipBg,
                                             label: Text(
                                               sizeText,
-                                              style: TextStyle(
-                                                color: chipFg,
-                                                fontSize: 10,
-                                              ), // smaller text
+                                              style: TextStyle(color: chipFg, fontSize: 10), // smaller text
                                             ),
-                                            visualDensity: VisualDensity(
-                                              horizontal: -4,
-                                              vertical: -4,
-                                            ),
+                                            visualDensity: VisualDensity(horizontal: -4, vertical: -4),
                                             // smaller chip
-                                            materialTapTargetSize:
-                                                MaterialTapTargetSize
-                                                    .shrinkWrap,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                              vertical: 0,
-                                            ),
+                                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                                           ),
                                         ),
                                       // Removed parameterSize chip
@@ -531,54 +429,21 @@ class _ModelsPageState extends State<ModelsPage> {
                                 ),
                                 subtitle: null,
                                 children: [
-                                  if (model.digest != null)
-                                    ListTile(
-                                      title: const Text('Digest'),
-                                      subtitle: Text(model.digest!),
-                                    ),
+                                  if (model.digest != null) ListTile(title: const Text('Digest'), subtitle: Text(model.digest!)),
                                   if (model.size != null)
-                                    ListTile(
-                                      title: const Text('Size'),
-                                      subtitle: Text(
-                                        '${model.size} (${AppUtils.humanSize(model.size)})',
-                                      ),
-                                    ),
+                                    ListTile(title: const Text('Size'), subtitle: Text('${model.size} (${AppUtils.humanSize(model.size)})')),
                                   if (model.sizeVram != null)
-                                    ListTile(
-                                      title: const Text('VRAM Size'),
-                                      subtitle: Text(
-                                        '${model.sizeVram} (${AppUtils.humanSize(model.sizeVram)})',
-                                      ),
-                                    ),
+                                    ListTile(title: const Text('VRAM Size'), subtitle: Text('${model.sizeVram} (${AppUtils.humanSize(model.sizeVram)})')),
                                   if (model.contextLength != null)
-                                    ListTile(
-                                      title: const Text('Context Length'),
-                                      subtitle: Text(
-                                        model.contextLength.toString(),
-                                      ),
-                                    ),
-                                  if (model.expiresAt != null)
-                                    ListTile(
-                                      title: const Text('Expires At'),
-                                      subtitle: Text(
-                                        model.expiresAt.toString(),
-                                      ),
-                                    ),
+                                    ListTile(title: const Text('Context Length'), subtitle: Text(model.contextLength.toString())),
+                                  if (model.expiresAt != null) ListTile(title: const Text('Expires At'), subtitle: Text(model.expiresAt.toString())),
 
                                   // Render details map as individual properties (not raw JSON)
                                   if (model.details != null) ...[
                                     const Divider(),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0,
-                                        vertical: 8.0,
-                                      ),
-                                      child: Text(
-                                        'Details',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                      child: Text('Details', style: Theme.of(context).textTheme.titleSmall),
                                     ),
                                     for (final entry in model.details!.entries)
                                       ListTile(
@@ -587,10 +452,8 @@ class _ModelsPageState extends State<ModelsPage> {
                                         subtitle: Text(
                                           entry.value == null
                                               ? 'null'
-                                              : (entry.value is Map ||
-                                                    entry.value is List)
-                                              ? (model.detailsPretty ??
-                                                    entry.value.toString())
+                                              : (entry.value is Map || entry.value is List)
+                                              ? (model.detailsPretty ?? entry.value.toString())
                                               : entry.value.toString(),
                                         ),
                                       ),

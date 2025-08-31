@@ -12,9 +12,7 @@ class OllamaService {
     final response = await http.get(uri).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Server returned ${response.statusCode}: ${response.reasonPhrase}',
-      );
+      throw Exception('Server returned ${response.statusCode}: ${response.reasonPhrase}');
     }
 
     final body = json.decode(response.body);

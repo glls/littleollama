@@ -27,9 +27,7 @@ class AppUtils {
   static dynamic findSizeField(Map<String, dynamic> m) {
     for (final k in m.keys) {
       final lk = k.toLowerCase();
-      if (lk.contains('size') ||
-          lk.contains('bytes') ||
-          lk.contains('file_size')) {
+      if (lk.contains('size') || lk.contains('bytes') || lk.contains('file_size')) {
         return m[k];
       }
     }
@@ -38,9 +36,7 @@ class AppUtils {
       if (v is Map) {
         for (final k2 in v.keys) {
           final lk2 = k2.toString().toLowerCase();
-          if (lk2.contains('size') ||
-              lk2.contains('bytes') ||
-              lk2.contains('file_size')) {
+          if (lk2.contains('size') || lk2.contains('bytes') || lk2.contains('file_size')) {
             return v[k2];
           }
         }
