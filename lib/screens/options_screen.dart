@@ -74,11 +74,11 @@ class _OptionsScreenState extends State<OptionsScreen> {
     }
 
     // Save polling interval and sorting preference
-    await storage.saveTheme(
+    await storage.saveSetting(
       _prefsKeyPollingInterval,
       _pollingInterval.toString(),
     );
-    await storage.saveTheme(_prefsKeySortBy, _sortBy);
+    await storage.saveSetting(_prefsKeySortBy, _sortBy);
 
     // Call callbacks
     widget.onEndpointChanged(normalizedEndpoint);

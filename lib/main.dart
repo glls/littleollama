@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadThemeMode() async {
-    final v = await storage.loadTheme(_prefsThemeKey) ?? 'system';
+    final v = await storage.loadSetting(_prefsThemeKey) ?? 'system';
     setState(() {
       if (v == 'light') {
         _themeMode = ThemeMode.light;
@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
     final s = m == ThemeMode.light
         ? 'light'
         : (m == ThemeMode.dark ? 'dark' : 'system');
-    await storage.saveTheme(_prefsThemeKey, s);
+    await storage.saveSetting(_prefsThemeKey, s);
     setState(() => _themeMode = m);
   }
 
@@ -118,17 +118,17 @@ class _ModelsPageState extends State<ModelsPage> {
   }
 
   Future<void> _loadEndpointAndFetch() async {
-    final stored = await storage.loadEndpoint(_prefsKeyEndpoint);
+    final stored = await storage.loadSetting(_prefsKeyEndpoint);
     if (stored != null && stored.isNotEmpty) {
       _endpoint = AppUtils.normalizeEndpoint(stored);
     }
     // Load polling interval
-    final pollingStr = await storage.loadTheme(_prefsKeyPollingInterval);
+    final pollingStr = await storage.loadSetting(_prefsKeyPollingInterval);
     if (pollingStr != null) {
       _pollingInterval = int.tryParse(pollingStr) ?? 0;
     }
     // Load sort option
-    final sortStr = await storage.loadTheme(_prefsKeySortBy);
+    final sortStr = await storage.loadSetting(_prefsKeySortBy);
     if (sortStr != null && sortStr.isNotEmpty) {
       _sortBy = sortStr;
     }
@@ -258,7 +258,7 @@ class _ModelsPageState extends State<ModelsPage> {
                     currentPollingInterval: _pollingInterval,
                     currentSortBy: _sortBy,
                     onEndpointChanged: (newEndpoint) async {
-                      await storage.saveEndpoint(
+                      await storage.saveSetting(
                         _prefsKeyEndpoint,
                         newEndpoint,
                       );
@@ -375,8 +375,6 @@ class _ModelsPageState extends State<ModelsPage> {
                                       size: 64,
                                       color: Colors.red,
                                     ),
-                                    const SizedBox(height: 16),
-                                    Text('Error: ${''}'),
                                     const SizedBox(height: 8),
                                     Text(snapshot.error.toString()),
                                     const SizedBox(height: 16),
