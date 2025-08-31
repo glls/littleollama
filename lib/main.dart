@@ -208,29 +208,25 @@ class _ModelsPageState extends State<ModelsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-      children: [
-      const Text('LittleOllama'),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            AppUtils.baseUrlFromEndpoint(_endpoint),
-            style: const TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'LittleOllama',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            if (_version != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Text(
+                  'Ollama v: $_version ${AppUtils.baseUrlFromEndpoint(_endpoint)}',
+                  style: const TextStyle(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
         ),
-        if (_version != null)
-    Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Text(
-        'v: $_version',
-        style: const TextStyle(fontSize: 12),
-      ),
-    ),
-    ],
-    ),
-
-    actions: [
+        actions: [
           // Theme chooser
           PopupMenuButton<ThemeMode>(
             icon: const Icon(Icons.brightness_6),
@@ -407,7 +403,7 @@ class _ModelsPageState extends State<ModelsPage> {
                       case 'modified_at':
                         return (a.modifiedAt ?? '').compareTo(b.modifiedAt ?? '');
                       case 'size':
-                        return (a.size ?? 0).compareTo(b.size ?? 0);
+                        return (b.size ?? 0).compareTo(a.size ?? 0);
                       case 'family':
                         return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
                       default:
@@ -438,7 +434,6 @@ class _ModelsPageState extends State<ModelsPage> {
                       final model = filteredModels[index];
                       final name = model.displayName;
                       final sizeText = model.size != null ? AppUtils.humanSize(model.size) : null;
-                      final parameterSizeText = model.parameterSize;
                       final chipBg = Theme.of(context).colorScheme.surfaceContainerHighest;
                       final chipFg = Theme.of(context).colorScheme.onSurfaceVariant;
 
@@ -461,22 +456,19 @@ class _ModelsPageState extends State<ModelsPage> {
                                 ),
                                 if (sizeText != null)
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 6.0),
+                                    padding: const EdgeInsets.only(left: 4.0),
                                     child: Chip(
                                       backgroundColor: chipBg,
-                                      label: Text(sizeText, style: TextStyle(color: chipFg, fontSize: 13)),
-                                      visualDensity: VisualDensity.compact,
+                                      label: Text(
+                                        sizeText,
+                                        style: TextStyle(color: chipFg, fontSize: 10), // smaller text
+                                      ),
+                                      visualDensity: VisualDensity(horizontal: -4, vertical: -4), // smaller chip
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                                     ),
                                   ),
-                                if (parameterSizeText != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 6.0),
-                                    child: Chip(
-                                      backgroundColor: chipBg,
-                                      label: Text(parameterSizeText, style: TextStyle(color: chipFg, fontSize: 13)),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
+                                // Removed parameterSize chip
                               ],
                             ),
                           ),
