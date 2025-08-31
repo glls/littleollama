@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'src/storage_io.dart'
@@ -412,10 +410,6 @@ class _ModelsPageState extends State<ModelsPage> {
                         return (a.size ?? 0).compareTo(b.size ?? 0);
                       case 'family':
                         return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
-                      case 'parameter_size':
-                        return (a.parameterSize ?? '').compareTo(b.parameterSize ?? '');
-                      case 'quantization_level':
-                        return (a.quantizationLevel ?? '').compareTo(b.quantizationLevel ?? '');
                       default:
                         return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
                     }

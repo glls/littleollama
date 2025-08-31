@@ -217,7 +217,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: _sortBy,
+                    initialValue: _sortBy,
                     decoration: const InputDecoration(
                       labelText: 'Sort models by',
                       border: OutlineInputBorder(),
@@ -227,8 +227,6 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       DropdownMenuItem(value: 'modified_at', child: Text('Modified At')),
                       DropdownMenuItem(value: 'size', child: Text('Size')),
                       DropdownMenuItem(value: 'family', child: Text('Family')),
-                      DropdownMenuItem(value: 'parameter_size', child: Text('Parameter Size')),
-                      DropdownMenuItem(value: 'quantization_level', child: Text('Quantization Level')),
                     ],
                     onChanged: (value) {
                       setState(() {
