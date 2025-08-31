@@ -10,6 +10,7 @@ class OllamaModel {
   final int? sizeVram;
   final int? contextLength;
   final String? detailsPretty;
+  final String? modifiedAt;
 
   OllamaModel({
     required this.name,
@@ -21,6 +22,7 @@ class OllamaModel {
     this.sizeVram,
     this.contextLength,
     this.detailsPretty,
+    this.modifiedAt,
   });
 
   factory OllamaModel.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class OllamaModel {
       sizeVram: json['size_vram'],
       contextLength: json['context_length'],
       detailsPretty: pretty,
+      modifiedAt: json['modified_at']?.toString(),
     );
   }
 

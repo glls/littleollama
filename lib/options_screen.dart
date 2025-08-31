@@ -10,15 +10,19 @@ import 'src/storage_io.dart'
 class OptionsScreen extends StatefulWidget {
   final String currentEndpoint;
   final int currentPollingInterval;
+  final String currentSortBy;
   final Function(String) onEndpointChanged;
   final Function(int) onPollingIntervalChanged;
+  final Function(String) onSortByChanged;
 
   const OptionsScreen({
     super.key,
     required this.currentEndpoint,
     required this.currentPollingInterval,
+    required this.currentSortBy,
     required this.onEndpointChanged,
     required this.onPollingIntervalChanged,
+    required this.onSortByChanged,
   });
 
   @override
@@ -28,15 +32,18 @@ class OptionsScreen extends StatefulWidget {
 class _OptionsScreenState extends State<OptionsScreen> {
   late TextEditingController _endpointController;
   late int _pollingInterval;
+  late String _sortBy;
   PackageInfo? _packageInfo;
 
   static const _prefsKeyPollingInterval = 'polling_interval';
+  static const _prefsKeySortBy = 'model_sort_by';
 
   @override
   void initState() {
     super.initState();
     _endpointController = TextEditingController(text: widget.currentEndpoint);
     _pollingInterval = widget.currentPollingInterval;
+    _sortBy = widget.currentSortBy;
     _loadPackageInfo();
   }
 
@@ -66,15 +73,17 @@ class _OptionsScreenState extends State<OptionsScreen> {
       normalizedEndpoint = 'http://$normalizedEndpoint';
     }
 
-    // Save polling interval
+    // Save polling interval and sorting preference
     await storage.saveTheme(
       _prefsKeyPollingInterval,
       _pollingInterval.toString(),
     );
+    await storage.saveTheme(_prefsKeySortBy, _sortBy);
 
     // Call callbacks
     widget.onEndpointChanged(normalizedEndpoint);
     widget.onPollingIntervalChanged(_pollingInterval);
+    widget.onSortByChanged(_sortBy);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,6 +196,45 @@ class _OptionsScreenState extends State<OptionsScreen> {
                       helperText: 'Enter the base URL of your Ollama server',
                     ),
                     keyboardType: TextInputType.url,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Model Sorting Section
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Model Sorting',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _sortBy,
+                    decoration: const InputDecoration(
+                      labelText: 'Sort models by',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'name', child: Text('Name')),
+                      DropdownMenuItem(value: 'modified_at', child: Text('Modified At')),
+                      DropdownMenuItem(value: 'size', child: Text('Size')),
+                      DropdownMenuItem(value: 'family', child: Text('Family')),
+                      DropdownMenuItem(value: 'parameter_size', child: Text('Parameter Size')),
+                      DropdownMenuItem(value: 'quantization_level', child: Text('Quantization Level')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _sortBy = value ?? 'name';
+                      });
+                    },
                   ),
                 ],
               ),

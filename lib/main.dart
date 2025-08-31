@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'src/storage_io.dart'
@@ -100,6 +102,8 @@ class _ModelsPageState extends State<ModelsPage> {
   Timer? _pollingTimer;
   int _pollingInterval = 0; // 0 = manual only
   OllamaService? _ollamaService;
+  String _sortBy = 'name';
+  static const _prefsKeySortBy = 'model_sort_by';
 
   @override
   void initState() {
@@ -119,13 +123,16 @@ class _ModelsPageState extends State<ModelsPage> {
     if (stored != null && stored.isNotEmpty) {
       _endpoint = AppUtils.normalizeEndpoint(stored);
     }
-
     // Load polling interval
     final pollingStr = await storage.loadTheme(_prefsKeyPollingInterval);
     if (pollingStr != null) {
       _pollingInterval = int.tryParse(pollingStr) ?? 0;
     }
-
+    // Load sort option
+    final sortStr = await storage.loadTheme(_prefsKeySortBy);
+    if (sortStr != null && sortStr.isNotEmpty) {
+      _sortBy = sortStr;
+    }
     _ollamaService = OllamaService(AppUtils.baseUrlFromEndpoint(_endpoint));
     setState(() {
       _futureModels = _ollamaService!.fetchModels();
@@ -161,6 +168,12 @@ class _ModelsPageState extends State<ModelsPage> {
       _pollingInterval = newInterval;
     });
     _startPolling();
+  }
+
+  void _onSortByChanged(String newSortBy) {
+    setState(() {
+      _sortBy = newSortBy;
+    });
   }
 
   Future<void> _refresh() async {
@@ -244,11 +257,13 @@ class _ModelsPageState extends State<ModelsPage> {
                   builder: (context) => OptionsScreen(
                     currentEndpoint: _endpoint,
                     currentPollingInterval: _pollingInterval,
+                    currentSortBy: _sortBy,
                     onEndpointChanged: (newEndpoint) async {
                       await storage.saveEndpoint(_prefsKeyEndpoint, newEndpoint);
                       _onEndpointChanged(newEndpoint);
                     },
                     onPollingIntervalChanged: _onPollingIntervalChanged,
+                    onSortByChanged: _onSortByChanged,
                   ),
                 ),
               );
@@ -259,30 +274,7 @@ class _ModelsPageState extends State<ModelsPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _filterController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Filter models (match any field)...',
-                suffixIcon: _filterController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _filterController.clear();
-                          setState(() {
-                            _filter = '';
-                          });
-                        },
-                      )
-                    : null,
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (v) => setState(() => _filter = v),
-            ),
-          ),
-          // running model info shown between filter and list
+          // running model info shown between appbar and filter
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 12.0,
@@ -327,6 +319,30 @@ class _ModelsPageState extends State<ModelsPage> {
                     ),
                   ),
               ],
+            ),
+          ),
+          // filter box below running models
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _filterController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Filter models (match any field)...',
+                suffixIcon: _filterController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _filterController.clear();
+                          setState(() {
+                            _filter = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (v) => setState(() => _filter = v),
             ),
           ),
           Expanded(
@@ -385,6 +401,25 @@ class _ModelsPageState extends State<ModelsPage> {
                       return false;
                     }).toList();
                   }
+                  // Sort models by selected option
+                  filteredModels.sort((a, b) {
+                    switch (_sortBy) {
+                      case 'name':
+                        return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+                      case 'modified_at':
+                        return (a.modifiedAt ?? '').compareTo(b.modifiedAt ?? '');
+                      case 'size':
+                        return (a.size ?? 0).compareTo(b.size ?? 0);
+                      case 'family':
+                        return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
+                      case 'parameter_size':
+                        return (a.parameterSize ?? '').compareTo(b.parameterSize ?? '');
+                      case 'quantization_level':
+                        return (a.quantizationLevel ?? '').compareTo(b.quantizationLevel ?? '');
+                      default:
+                        return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
+                    }
+                  });
 
                   if (filteredModels.isEmpty) {
                     return ListView(
@@ -402,9 +437,6 @@ class _ModelsPageState extends State<ModelsPage> {
                     );
                   }
 
-                  final chipBg = Theme.of(context).colorScheme.surfaceContainerHighest;
-                  final chipFg = Theme.of(context).colorScheme.onSurfaceVariant;
-
                   return ListView.builder(
                     padding: const EdgeInsets.all(8),
                     itemCount: filteredModels.length,
@@ -412,23 +444,49 @@ class _ModelsPageState extends State<ModelsPage> {
                       final model = filteredModels[index];
                       final name = model.displayName;
                       final sizeText = model.size != null ? AppUtils.humanSize(model.size) : null;
+                      final parameterSizeText = model.parameterSize;
+                      final chipBg = Theme.of(context).colorScheme.surfaceContainerHighest;
+                      final chipFg = Theme.of(context).colorScheme.onSurfaceVariant;
 
                       return Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: ExpansionTile(
                           key: ValueKey('expansion-$name-$index'),
-                          title: Row(
-                            children: [
-                              Expanded(child: Text(name)),
-                              if (sizeText != null)
-                                Chip(
-                                  backgroundColor: chipBg,
-                                  label: Text(sizeText, style: TextStyle(color: chipFg, fontSize: 12)),
+                          title: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    name,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                            ],
+                                if (sizeText != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 6.0),
+                                    child: Chip(
+                                      backgroundColor: chipBg,
+                                      label: Text(sizeText, style: TextStyle(color: chipFg, fontSize: 13)),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                if (parameterSizeText != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 6.0),
+                                    child: Chip(
+                                      backgroundColor: chipBg,
+                                      label: Text(parameterSizeText, style: TextStyle(color: chipFg, fontSize: 13)),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                          subtitle: (model.parameterSize != null || model.quantizationLevel != null)
-                              ? Text('${model.parameterSize ?? ''} ${model.quantizationLevel ?? ''}')
-                              : null,
+                          subtitle: null,
                           children: [
                             if (model.digest != null)
                               ListTile(
