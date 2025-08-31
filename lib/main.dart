@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'src/storage_io.dart'
     if (dart.library.html) 'src/storage_web.dart'
     as storage;
-import 'options_screen.dart';
+import 'screens/options_screen.dart';
 import 'models/ollama_models.dart';
 import 'services/ollama_service.dart';
 import 'utils/app_utils.dart';

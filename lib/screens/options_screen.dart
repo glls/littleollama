@@ -3,8 +3,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
-import 'src/storage_io.dart'
-    if (dart.library.html) 'src/storage_web.dart'
+import '../src/storage_io.dart'
+    if (dart.library.html) '../src/storage_web.dart'
     as storage;
 
 class OptionsScreen extends StatefulWidget {
