@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'src/storage_io.dart' if (dart.library.html) 'src/storage_web.dart' as storage;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+import 'src/storage_io.dart'
+    if (dart.library.html) 'src/storage_web.dart'
+    as storage;
 
 class OptionsScreen extends StatefulWidget {
   final String currentEndpoint;
@@ -50,18 +55,22 @@ class _OptionsScreenState extends State<OptionsScreen> {
 
   Future<void> _saveSettings() async {
     final endpoint = _endpointController.text.trim();
-    
+
     // Normalize endpoint
     var normalizedEndpoint = endpoint;
     if (normalizedEndpoint.contains('/api/')) {
       normalizedEndpoint = normalizedEndpoint.split('/api/')[0];
     }
-    if (!normalizedEndpoint.startsWith('http://') && !normalizedEndpoint.startsWith('https://')) {
+    if (!normalizedEndpoint.startsWith('http://') &&
+        !normalizedEndpoint.startsWith('https://')) {
       normalizedEndpoint = 'http://$normalizedEndpoint';
     }
 
     // Save polling interval
-    await storage.saveTheme(_prefsKeyPollingInterval, _pollingInterval.toString());
+    await storage.saveTheme(
+      _prefsKeyPollingInterval,
+      _pollingInterval.toString(),
+    );
 
     // Call callbacks
     widget.onEndpointChanged(normalizedEndpoint);
@@ -72,6 +81,23 @@ class _OptionsScreenState extends State<OptionsScreen> {
         const SnackBar(content: Text('Settings saved successfully')),
       );
       Navigator.of(context).pop();
+    }
+  }
+
+  String getPlatformName() {
+    if (kIsWeb) return 'Web';
+    if (Platform.isAndroid) return 'Android';
+    if (Platform.isIOS) return 'iOS';
+    if (Platform.isLinux) return 'Linux';
+    if (Platform.isMacOS) return 'macOS';
+    if (Platform.isWindows) return 'Windows';
+    return 'Unknown';
+  }
+
+  Future<void> _launchGeorgeLitos() async {
+    const url = 'https://georgelitos.com';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
 
@@ -100,39 +126,45 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 children: [
                   const Text(
                     'App Information',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 20),
-                      const SizedBox(width: 8),
                       Text(
-                        'littleOllama ${_packageInfo?.version ?? 'Unknown'}',
+                        'LittleOllama v${_packageInfo?.version ?? 'Unknown'}',
                         style: const TextStyle(fontSize: 16),
                       ),
+                      const SizedBox(width: 8),
+                      if (_packageInfo?.version != null)
+                        Text(
+                          "(${getPlatformName()})",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                     ],
                   ),
-                  if (_packageInfo?.buildNumber != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Build: ${_packageInfo!.buildNumber}',
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _launchGeorgeLitos,
+                    child: Text(
+                      'Developed by George Litos',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.primary,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Server Configuration Section
           Card(
             child: Padding(
@@ -142,10 +174,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 children: [
                   const Text(
                     'Server Configuration',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -163,9 +192,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Polling Configuration Section
           Card(
             child: Padding(
@@ -175,10 +204,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 children: [
                   const Text(
                     'Polling Configuration',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -193,7 +219,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     children: [
                       RadioListTile<int>(
                         title: const Text('Manual only'),
-                        subtitle: const Text('Only refresh when manually triggered'),
+                        subtitle: const Text(
+                          'Only refresh when manually triggered',
+                        ),
                         value: 0,
                         groupValue: _pollingInterval,
                         onChanged: (value) {
