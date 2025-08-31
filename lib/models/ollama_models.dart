@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class OllamaModel {
   final String name;
@@ -10,6 +9,7 @@ class OllamaModel {
   final DateTime? expiresAt;
   final int? sizeVram;
   final int? contextLength;
+  final String? detailsPretty;
 
   OllamaModel({
     required this.name,
@@ -20,18 +20,28 @@ class OllamaModel {
     this.expiresAt,
     this.sizeVram,
     this.contextLength,
+    this.detailsPretty,
   });
 
   factory OllamaModel.fromJson(Map<String, dynamic> json) {
+    String? pretty;
+    if (json['details'] is Map) {
+      try {
+        pretty = const JsonEncoder.withIndent('  ').convert(json['details']);
+      } catch (_) {
+        pretty = json['details'].toString();
+      }
+    }
     return OllamaModel(
       name: json['name'] ?? json['model'] ?? json['id'] ?? json['tag'] ?? json['title'] ?? 'Unknown',
       model: json['model'],
       size: json['size'],
       digest: json['digest'],
-      details: json['details'],
+      details: json['details'] is Map ? Map<String, dynamic>.from(json['details']) : null,
       expiresAt: json['expires_at'] != null ? DateTime.tryParse(json['expires_at']) : null,
       sizeVram: json['size_vram'],
       contextLength: json['context_length'],
+      detailsPretty: pretty,
     );
   }
 
