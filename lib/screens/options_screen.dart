@@ -224,7 +224,10 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     items: const [
                       DropdownMenuItem(value: 'name', child: Text('Name')),
-                      DropdownMenuItem(value: 'modified_at', child: Text('Modified At')),
+                      DropdownMenuItem(
+                        value: 'modified_at',
+                        child: Text('Modified At'),
+                      ),
                       DropdownMenuItem(value: 'size', child: Text('Size')),
                       DropdownMenuItem(value: 'family', child: Text('Family')),
                     ],

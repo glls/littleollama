@@ -38,7 +38,8 @@ Future<String?> loadEndpoint(String key) async {
   try {
     final prefsRaw = _localStorage.getItem('flutter.SharedPreferences');
     if (prefsRaw != null && prefsRaw.isNotEmpty) {
-      final Map<String, dynamic> prefs = json.decode(prefsRaw) as Map<String, dynamic>;
+      final Map<String, dynamic> prefs =
+          json.decode(prefsRaw) as Map<String, dynamic>;
       final stored = prefs[key];
       if (stored is String && stored.isNotEmpty) return stored;
     }
@@ -71,7 +72,8 @@ Future<String?> loadTheme(String key) async {
   try {
     final prefsRaw = _localStorage.getItem('flutter.SharedPreferences');
     if (prefsRaw != null && prefsRaw.isNotEmpty) {
-      final Map<String, dynamic> prefs = json.decode(prefsRaw) as Map<String, dynamic>;
+      final Map<String, dynamic> prefs =
+          json.decode(prefsRaw) as Map<String, dynamic>;
       final stored = prefs[key];
       if (stored is String && stored.isNotEmpty) return stored;
     }

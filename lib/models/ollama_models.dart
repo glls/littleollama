@@ -35,12 +35,22 @@ class OllamaModel {
       }
     }
     return OllamaModel(
-      name: json['name'] ?? json['model'] ?? json['id'] ?? json['tag'] ?? json['title'] ?? 'Unknown',
+      name:
+          json['name'] ??
+          json['model'] ??
+          json['id'] ??
+          json['tag'] ??
+          json['title'] ??
+          'Unknown',
       model: json['model'],
       size: json['size'],
       digest: json['digest'],
-      details: json['details'] is Map ? Map<String, dynamic>.from(json['details']) : null,
-      expiresAt: json['expires_at'] != null ? DateTime.tryParse(json['expires_at']) : null,
+      details: json['details'] is Map
+          ? Map<String, dynamic>.from(json['details'])
+          : null,
+      expiresAt: json['expires_at'] != null
+          ? DateTime.tryParse(json['expires_at'])
+          : null,
       sizeVram: json['size_vram'],
       contextLength: json['context_length'],
       detailsPretty: pretty,
