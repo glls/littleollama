@@ -2,6 +2,10 @@
 
 A cross-platform info tool for [Ollama](https://ollama.com/), built with Flutter.
 
+![Main Screen](screenshots/Screenshot1.png)
+![Model Details](screenshots/Screenshot2.png)
+![Settings](screenshots/Screenshot3.png)
+
 ## Features
 
 - **Model List & Filtering**
