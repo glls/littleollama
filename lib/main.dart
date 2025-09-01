@@ -325,15 +325,41 @@ class _ModelsPageState extends State<ModelsPage> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(24.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                                    const SizedBox(height: 8),
-                                    Text(snapshot.error.toString()),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(onPressed: _refresh, child: const Text('Retry')),
-                                  ],
+                                child: Card(
+                                  color: Theme.of(context).colorScheme.errorContainer,
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Failed to load models',
+                                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onErrorContainer),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          snapshot.error.toString(),
+                                          style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onErrorContainer),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton.icon(
+                                          icon: const Icon(Icons.refresh),
+                                          onPressed: _refresh,
+                                          label: const Text('Retry'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                            foregroundColor: Theme.of(context).colorScheme.onError,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -343,6 +369,8 @@ class _ModelsPageState extends State<ModelsPage> {
                         final models = snapshot.data ?? [];
                         final filter = _filter.trim().toLowerCase();
                         List<OllamaModel> filteredModels = models;
+                        const allowedDetailKeys = ['family', 'quantization_level', 'architecture', 'parameter_size', 'format'];
+
                         if (filter.isNotEmpty) {
                           filteredModels = models.where((m) {
                             // match against name first
@@ -358,14 +386,13 @@ class _ModelsPageState extends State<ModelsPage> {
                         // Sort models by selected option
                         filteredModels.sort((a, b) {
                           switch (_sortBy) {
-                            case 'name':
-                              return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
                             case 'modified_at':
                               return (a.modifiedAt ?? '').compareTo(b.modifiedAt ?? '');
                             case 'size':
                               return (b.size ?? 0).compareTo(a.size ?? 0);
                             case 'family':
                               return (a.details?['family'] ?? '').compareTo(b.details?['family'] ?? '');
+                            case 'name':
                             default:
                               return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
                           }
@@ -432,31 +459,22 @@ class _ModelsPageState extends State<ModelsPage> {
                                   if (model.digest != null) ListTile(title: const Text('Digest'), subtitle: Text(model.digest!)),
                                   if (model.size != null)
                                     ListTile(title: const Text('Size'), subtitle: Text('${model.size} (${AppUtils.humanSize(model.size)})')),
-                                  if (model.sizeVram != null)
-                                    ListTile(title: const Text('VRAM Size'), subtitle: Text('${model.sizeVram} (${AppUtils.humanSize(model.sizeVram)})')),
-                                  if (model.contextLength != null)
-                                    ListTile(title: const Text('Context Length'), subtitle: Text(model.contextLength.toString())),
-                                  if (model.expiresAt != null) ListTile(title: const Text('Expires At'), subtitle: Text(model.expiresAt.toString())),
 
                                   // Render details map as individual properties (not raw JSON)
                                   if (model.details != null) ...[
-                                    const Divider(),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                      child: Text('Details', style: Theme.of(context).textTheme.titleSmall),
-                                    ),
                                     for (final entry in model.details!.entries)
-                                      ListTile(
-                                        dense: true,
-                                        title: Text(entry.key),
-                                        subtitle: Text(
-                                          entry.value == null
-                                              ? 'null'
-                                              : (entry.value is Map || entry.value is List)
-                                              ? (model.detailsPretty ?? entry.value.toString())
-                                              : entry.value.toString(),
+                                      if (allowedDetailKeys.contains(entry.key))
+                                        ListTile(
+                                          // dense: true,
+                                          title: Text(entry.key),
+                                          subtitle: Text(
+                                            entry.value == null
+                                                ? 'null'
+                                                : (entry.value is Map)
+                                                ? (model.detailsPretty ?? entry.value.toString())
+                                                : entry.value.toString(),
+                                          ),
                                         ),
-                                      ),
                                   ],
                                 ],
                               ),
