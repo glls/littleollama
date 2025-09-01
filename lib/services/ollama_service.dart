@@ -12,7 +12,9 @@ class OllamaService {
     final response = await http.get(uri).timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {
-      throw Exception('Server returned ${response.statusCode}: ${response.reasonPhrase}');
+      throw Exception(
+        'Server returned ${response.statusCode}: ${response.reasonPhrase}',
+      );
     }
 
     final body = json.decode(response.body);
@@ -99,6 +101,20 @@ class OllamaService {
       }
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchModelExtraInfo(String modelName) async {
+    final url = Uri.parse('$baseUrl/api/show');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'model': modelName}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to fetch extra info: ${response.statusCode}');
     }
   }
 }

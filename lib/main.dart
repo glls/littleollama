@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'src/storage_io.dart' if (dart.library.html) 'src/storage_web.dart' as storage;
-import 'screens/options_screen.dart';
+import 'package:flutter/services.dart';
+
 import 'models/ollama_models.dart';
+import 'screens/options_screen.dart';
 import 'services/ollama_service.dart';
+import 'src/storage_io.dart' if (dart.library.html) 'src/storage_web.dart' as storage;
 import 'utils/app_utils.dart';
 
 void main() {
@@ -341,12 +343,6 @@ class _ModelsPageState extends State<ModelsPage> {
                                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onErrorContainer),
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          snapshot.error.toString(),
-                                          style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onErrorContainer),
-                                          textAlign: TextAlign.center,
-                                        ),
                                         const SizedBox(height: 16),
                                         ElevatedButton.icon(
                                           icon: const Icon(Icons.refresh),
@@ -369,7 +365,6 @@ class _ModelsPageState extends State<ModelsPage> {
                         final models = snapshot.data ?? [];
                         final filter = _filter.trim().toLowerCase();
                         List<OllamaModel> filteredModels = models;
-                        const allowedDetailKeys = ['family', 'quantization_level', 'architecture', 'parameter_size', 'format'];
 
                         if (filter.isNotEmpty) {
                           filteredModels = models.where((m) {
@@ -442,40 +437,93 @@ class _ModelsPageState extends State<ModelsPage> {
                                             backgroundColor: chipBg,
                                             label: Text(
                                               sizeText,
-                                              style: TextStyle(color: chipFg, fontSize: 10), // smaller text
+                                              style: TextStyle(color: chipFg, fontSize: 10),
                                             ),
                                             visualDensity: VisualDensity(horizontal: -4, vertical: -4),
-                                            // smaller chip
                                             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                                           ),
                                         ),
-                                      // Removed parameterSize chip
                                     ],
                                   ),
                                 ),
                                 subtitle: null,
                                 children: [
-                                  if (model.digest != null) ListTile(title: const Text('Digest'), subtitle: Text(model.digest!)),
-                                  if (model.size != null)
-                                    ListTile(title: const Text('Size'), subtitle: Text('${model.size} (${AppUtils.humanSize(model.size)})')),
-
-                                  // Render details map as individual properties (not raw JSON)
-                                  if (model.details != null) ...[
-                                    for (final entry in model.details!.entries)
-                                      if (allowedDetailKeys.contains(entry.key))
-                                        ListTile(
-                                          // dense: true,
-                                          title: Text(entry.key),
-                                          subtitle: Text(
-                                            entry.value == null
-                                                ? 'null'
-                                                : (entry.value is Map)
-                                                ? (model.detailsPretty ?? entry.value.toString())
-                                                : entry.value.toString(),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Digest
+                                        if (model.digest != null)
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.fingerprint, size: 18),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: SelectableText(
+                                                  model.digest!,
+                                                  style: const TextStyle(fontSize: 13),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.copy, size: 16),
+                                                tooltip: 'Copy digest',
+                                                onPressed: () {
+                                                  Clipboard.setData(ClipboardData(text: model.digest!));
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Digest copied!')),
+                                                  );
+                                                },
+                                              ),
+                                            ],
                                           ),
+                                        // Size
+                                        if (model.size != null)
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.storage, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                AppUtils.humanSize(model.size),
+                                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text('(${model.size})', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                            ],
+                                          ),
+                                        // Details chips
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 4,
+                                          children: [
+                                            if (model.details?['family'] != null)
+                                              Chip(
+                                                label: Text('Family: ${model.details!['family']}'),
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                              ),
+                                            if (model.details?['quantization_level'] != null)
+                                              Chip(
+                                                label: Text('Quant: ${model.details!['quantization_level']}'),
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                              ),
+                                            if (model.details?['parameter_size'] != null)
+                                              Chip(
+                                                label: Text('Params: ${model.details!['parameter_size']}'),
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                              ),
+                                            if (model.details?['format'] != null)
+                                              Chip(
+                                                label: Text('Format: ${model.details!['format']}'),
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                              ),
+                                          ],
                                         ),
-                                  ],
+                                        // Placeholder for extra info (to be filled after POST)
+                                        ModelExtraInfoWidget(modelName: model.displayName, ollamaService: _ollamaService!),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -487,6 +535,167 @@ class _ModelsPageState extends State<ModelsPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ModelExtraInfoWidget extends StatefulWidget {
+  final String modelName;
+  final OllamaService ollamaService;
+
+  const ModelExtraInfoWidget({super.key, required this.modelName, required this.ollamaService});
+
+  @override
+  State<ModelExtraInfoWidget> createState() => _ModelExtraInfoWidgetState();
+}
+
+class _ModelExtraInfoWidgetState extends State<ModelExtraInfoWidget> {
+  Map<String, dynamic>? _extraInfo;
+  bool _loading = false;
+  String? _error;
+  bool _expandedModelfile = false;
+  bool _expandedParameters = false;
+  bool _expandedTemplate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchExtraInfo();
+  }
+
+  Future<void> _fetchExtraInfo() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final info = await widget.ollamaService.fetchModelExtraInfo(widget.modelName);
+      setState(() {
+        _extraInfo = info;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  Widget _buildCollapsibleSection(String title, String? content, bool expanded, void Function(bool) onChanged) {
+    if (content == null || content.isEmpty) return const SizedBox.shrink();
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ExpansionTile(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        initiallyExpanded: expanded,
+        onExpansionChanged: onChanged,
+        children: [
+          Container(
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            padding: const EdgeInsets.all(8),
+            child: SelectableText(
+              content,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.copy),
+              tooltip: 'Copy',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: content));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('$title copied!')),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_error != null) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(_error!, style: const TextStyle(color: Colors.red)),
+      );
+    }
+    if (_extraInfo == null) {
+      return const SizedBox.shrink();
+    }
+    final details = _extraInfo!['details'] as Map<String, dynamic>?;
+    final modelInfo = _extraInfo!['model_info'] as Map<String, dynamic>?;
+    final capabilities = (_extraInfo!['capabilities'] as List?)?.cast<String>() ?? [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildCollapsibleSection('Modelfile', _extraInfo!['modelfile'] as String?, _expandedModelfile, (v) => setState(() => _expandedModelfile = v)),
+        _buildCollapsibleSection('Parameters', _extraInfo!['parameters'] as String?, _expandedParameters, (v) => setState(() => _expandedParameters = v)),
+        _buildCollapsibleSection('Template', _extraInfo!['template'] as String?, _expandedTemplate, (v) => setState(() => _expandedTemplate = v)),
+        if (details != null && details.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                ...details.entries.where((e) => !((e.key == 'parent_model' || e.key == 'families') && (e.value == null || (e.value is String && e.value.isEmpty)))).map((e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(e.key, style: const TextStyle(fontSize: 13, color: Colors.grey))),
+                      const SizedBox(width: 8),
+                      Expanded(child: SelectableText(e.value.toString(), style: const TextStyle(fontSize: 13))),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+        if (modelInfo != null && modelInfo.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Model Info', style: TextStyle(fontWeight: FontWeight.bold)),
+                ...modelInfo.entries.map((e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(e.key, style: const TextStyle(fontSize: 13, color: Colors.grey))),
+                      const SizedBox(width: 8),
+                      Expanded(child: SelectableText(e.value.toString(), style: const TextStyle(fontSize: 13))),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+        if (capabilities.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Wrap(
+              spacing: 8,
+              children: capabilities.map((c) => Chip(
+                label: Text(c),
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              )).toList(),
+            ),
+          ),
+      ],
     );
   }
 }
