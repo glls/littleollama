@@ -1,3 +1,4 @@
 # TODO
 
-- [ ] Refresh the models list
+- [X] Refresh the models list
+- [ ] Add application icon

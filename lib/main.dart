@@ -137,8 +137,7 @@ class _ModelsPageState extends State<ModelsPage> {
     _pollingTimer?.cancel();
     if (_pollingInterval > 0) {
       _pollingTimer = Timer.periodic(Duration(seconds: _pollingInterval), (timer) {
-        _fetchVersion();
-        _fetchRunning();
+        _refresh();
       });
     }
   }
@@ -500,22 +499,22 @@ class _ModelsPageState extends State<ModelsPage> {
                                             if (model.details?['family'] != null)
                                               Chip(
                                                 label: Text('Family: ${model.details!['family']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                               ),
                                             if (model.details?['quantization_level'] != null)
                                               Chip(
                                                 label: Text('Quant: ${model.details!['quantization_level']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                               ),
                                             if (model.details?['parameter_size'] != null)
                                               Chip(
                                                 label: Text('Params: ${model.details!['parameter_size']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                               ),
                                             if (model.details?['format'] != null)
                                               Chip(
                                                 label: Text('Format: ${model.details!['format']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                                               ),
                                           ],
                                         ),
@@ -593,7 +592,7 @@ class _ModelExtraInfoWidgetState extends State<ModelExtraInfoWidget> {
         children: [
           Container(
             width: double.infinity,
-            color: Theme.of(context).colorScheme.surfaceVariant,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             padding: const EdgeInsets.all(8),
             child: SelectableText(
               content,
