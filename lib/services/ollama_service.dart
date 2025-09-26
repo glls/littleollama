@@ -105,16 +105,24 @@ class OllamaService {
   }
 
   Future<Map<String, dynamic>> fetchModelExtraInfo(String modelName) async {
-    final url = Uri.parse('$baseUrl/api/show');
+    final uri = Uri.parse('$baseUrl/api/show');
     final response = await http.post(
-      url,
+      uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'model': modelName}),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+      body: json.encode({'model': modelName, 'verbose': false}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Server returned ${response.statusCode}: ${response.reasonPhrase}',
+      );
+    }
+
+    final body = json.decode(response.body);
+    if (body is Map<String, dynamic>) {
+      return body;
     } else {
-      throw Exception('Failed to fetch extra info: ${response.statusCode}');
+      throw Exception('Unexpected response format');
     }
   }
 }
