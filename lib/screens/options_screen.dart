@@ -139,33 +139,48 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'LittleOllama v${_packageInfo?.version ?? 'Unknown'}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(width: 8),
-                      if (_packageInfo?.version != null)
-                        Text(
-                          "(${getPlatformName()})",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                      Image.asset(
+                          'assets/images/app_icon.png', width: 64, height: 64), 
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'LittleOllama v${_packageInfo?.version ?? 'Unknown'}',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(width: 8),
+                                if (_packageInfo?.version != null)
+                                  Text(
+                                    "(${getPlatformName()})",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: _launchGeorgeLitos,
+                              child: Text(
+                                'Developed by George Litos',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _launchGeorgeLitos,
-                    child: Text(
-                      'Developed by George Litos',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

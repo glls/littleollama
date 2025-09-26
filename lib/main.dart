@@ -199,19 +199,32 @@ class _ModelsPageState extends State<ModelsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            const Text('LittleOllama', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            if (_version != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Text(
-                  'Ollama v$_version ${AppUtils.baseUrlFromEndpoint(_endpoint)}',
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+            Image.asset(
+              'assets/images/app_icon.png',
+              height: 32, 
+              width: 32,  
+            ),
+            const SizedBox(width: 8), 
+            Expanded( 
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, 
+                children: [
+                  const Text('LittleOllama', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  if (_version != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        'Ollama v$_version ${AppUtils.baseUrlFromEndpoint(_endpoint)}',
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
               ),
+            ),
           ],
         ),
         actions: [
