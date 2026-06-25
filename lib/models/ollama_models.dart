@@ -58,11 +58,16 @@ class RunningModel {
   final int? size;
   final int? sizeVram;
   final int? contextLength;
+  final DateTime? expiresAt;
 
-  RunningModel({required this.name, this.parameterSize, this.quantizationLevel, this.size, this.sizeVram, this.contextLength});
+  RunningModel({required this.name, this.parameterSize, this.quantizationLevel, this.size, this.sizeVram, this.contextLength, this.expiresAt});
 
   factory RunningModel.fromJson(Map<String, dynamic> json) {
     final details = json['details'] as Map<String, dynamic>?;
+    DateTime? expiresAt;
+    if (json['expires_at'] != null) {
+      expiresAt = DateTime.tryParse(json['expires_at'].toString());
+    }
     return RunningModel(
       name: json['name'] ?? json['model'] ?? 'Unknown',
       parameterSize: details?['parameter_size'],
@@ -70,6 +75,7 @@ class RunningModel {
       size: json['size'],
       sizeVram: json['size_vram'],
       contextLength: json['context_length'],
+      expiresAt: expiresAt,
     );
   }
 
@@ -81,6 +87,18 @@ class RunningModel {
     if (size != null) parts.add(humanSize(size));
     if (sizeVram != null) parts.add('VRAM: ${humanSize(sizeVram)}');
     if (contextLength != null) parts.add('CTX: $contextLength');
+    if (expiresAt != null) {
+      final diff = expiresAt!.difference(DateTime.now());
+      if (diff.isNegative) {
+        parts.add('expired');
+      } else if (diff.inMinutes < 1) {
+        parts.add('exp: <1m');
+      } else if (diff.inHours < 1) {
+        parts.add('exp: ${diff.inMinutes}m');
+      } else {
+        parts.add('exp: ${diff.inHours}h ${diff.inMinutes.remainder(60)}m');
+      }
+    }
 
     return parts.join(' • ');
   }

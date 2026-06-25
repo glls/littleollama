@@ -509,25 +509,30 @@ class _ModelsPageState extends State<ModelsPage> {
                                           spacing: 8,
                                           runSpacing: 4,
                                           children: [
-                                            if (model.details?['family'] != null)
+                                            if (model.details?['families'] is List && (model.details!['families'] as List).isNotEmpty)
+                                              ...(model.details!['families'] as List).map((f) => Chip(
+                                                label: Text('Family: $f'),
+                                                backgroundColor: chipBg,
+                                              ))
+                                            else if (model.details?['family'] != null)
                                               Chip(
                                                 label: Text('Family: ${model.details!['family']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                                backgroundColor: chipBg,
                                               ),
                                             if (model.details?['quantization_level'] != null)
                                               Chip(
                                                 label: Text('Quant: ${model.details!['quantization_level']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                                backgroundColor: chipBg,
                                               ),
                                             if (model.details?['parameter_size'] != null)
                                               Chip(
                                                 label: Text('Params: ${model.details!['parameter_size']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                                backgroundColor: chipBg,
                                               ),
                                             if (model.details?['format'] != null)
                                               Chip(
                                                 label: Text('Format: ${model.details!['format']}'),
-                                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                                backgroundColor: chipBg,
                                               ),
                                           ],
                                         ),

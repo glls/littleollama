@@ -279,72 +279,42 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Column(
-                    children: [
-                      RadioListTile<int>(
-                        title: const Text('Manual only'),
-                        subtitle: const Text(
-                          'Only refresh when manually triggered',
+                  RadioGroup<int>(
+                    groupValue: _pollingInterval,
+                    onChanged: (value) {
+                      setState(() {
+                        _pollingInterval = value!;
+                      });
+                    },
+                    child: Column(
+                      children: const [
+                        RadioListTile<int>(
+                          title: Text('Manual only'),
+                          subtitle: Text('Only refresh when manually triggered'),
+                          value: 0,
                         ),
-                        value: 0,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                      RadioListTile<int>(
-                        title: const Text('Every 5 seconds'),
-                        value: 5,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                      RadioListTile<int>(
-                        title: const Text('Every 15 seconds'),
-                        value: 15,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                      RadioListTile<int>(
-                        title: const Text('Every 30 seconds'),
-                        value: 30,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                      RadioListTile<int>(
-                        title: const Text('Every minute'),
-                        value: 60,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                      RadioListTile<int>(
-                        title: const Text('Every 5 minutes'),
-                        value: 5 * 60,
-                        groupValue: _pollingInterval,
-                        onChanged: (value) {
-                          setState(() {
-                            _pollingInterval = value!;
-                          });
-                        },
-                      ),
-                    ],
+                        RadioListTile<int>(
+                          title: Text('Every 5 seconds'),
+                          value: 5,
+                        ),
+                        RadioListTile<int>(
+                          title: Text('Every 15 seconds'),
+                          value: 15,
+                        ),
+                        RadioListTile<int>(
+                          title: Text('Every 30 seconds'),
+                          value: 30,
+                        ),
+                        RadioListTile<int>(
+                          title: Text('Every minute'),
+                          value: 60,
+                        ),
+                        RadioListTile<int>(
+                          title: Text('Every 5 minutes'),
+                          value: 5 * 60,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
